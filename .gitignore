@@ -41,3 +41,9 @@ app-example
 # generated native folders
 /ios
 /android
+
+# referencia projeto original
+fiap-front-postech-master/
+
+# backend env
+backend/.env

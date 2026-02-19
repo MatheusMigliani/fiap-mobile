@@ -1,0 +1,490 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "API de Blogging Educacional - FIAP",
+    "version": "1.0.0",
+    "description": "API REST para plataforma de blogging educacional para professores da rede pública",
+    "contact": {
+      "name": "FIAP - Pós Tech",
+      "email": "matheusmigliani@yahoo.com.br"
+    }
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "API",
+      "description": "Informações gerais da API"
+    },
+    {
+      "name": "Posts",
+      "description": "Endpoints para gerenciamento de posts educacionais"
+    },
+    {
+      "name": "Health",
+      "description": "Verificação de saúde da API"
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "description": "Verifica se a API está funcionando",
+        "responses": {
+          "200": {
+            "description": "API funcionando normalmente",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "message": {
+                  "type": "string",
+                  "example": "API está funcionando!"
+                },
+                "timestamp": {
+                  "type": "string",
+                  "example": "2026-01-07T00:00:00.000Z"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "API"
+        ],
+        "description": "Endpoint raiz da API com informações gerais",
+        "responses": {
+          "200": {
+            "description": "Informações da API",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Bem-vindo à API de Blogging Educacional - FIAP"
+                },
+                "version": {
+                  "type": "string",
+                  "example": "v1"
+                },
+                "endpoints": {
+                  "type": "object",
+                  "properties": {
+                    "posts": {
+                      "type": "string",
+                      "example": "/posts"
+                    },
+                    "health": {
+                      "type": "string",
+                      "example": "/health"
+                    },
+                    "docs": {
+                      "type": "string",
+                      "example": "/swagger"
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/posts/search": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "description": "Busca posts por palavra-chave no título, conteúdo ou autor",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Termo de busca (mínimo 2 caracteres)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Posts encontrados",
+            "schema": {
+              "$ref": "#/definitions/PostList"
+            }
+          },
+          "400": {
+            "description": "Parâmetro de busca inválido",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          }
+        }
+      }
+    },
+    "/api/posts/": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "description": "Lista todos os posts educacionais ordenados por data de criação (mais recentes primeiro)",
+        "responses": {
+          "200": {
+            "description": "Lista de posts",
+            "schema": {
+              "$ref": "#/definitions/PostList"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "description": "Cria um novo post educacional (requer autenticação)",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Dados do post",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Post"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Post criado com sucesso",
+            "schema": {
+              "$ref": "#/definitions/PostResponse"
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/posts/{id}": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "description": "Obtém um post específico pelo ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID do post"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post encontrado",
+            "schema": {
+              "$ref": "#/definitions/PostResponse"
+            }
+          },
+          "404": {
+            "description": "Post não encontrado",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Posts"
+        ],
+        "description": "Atualiza um post existente (requer autenticação)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID do post"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Dados para atualização (todos os campos são opcionais)",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Post"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post atualizado com sucesso",
+            "schema": {
+              "$ref": "#/definitions/PostResponse"
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Post não encontrado",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Posts"
+        ],
+        "description": "Remove um post pelo ID (requer autenticação)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID do post a ser removido"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post removido com sucesso",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Post removido com sucesso"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Post não encontrado",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "Post": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "Introdução à Matemática"
+        },
+        "content": {
+          "type": "string",
+          "example": "Conteúdo completo da aula sobre matemática básica..."
+        },
+        "author": {
+          "type": "string",
+          "example": "Prof. João Silva"
+        }
+      }
+    },
+    "PostResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "507f1f77bcf86cd799439011"
+            },
+            "title": {
+              "type": "string",
+              "example": "Introdução à Matemática"
+            },
+            "content": {
+              "type": "string",
+              "example": "Conteúdo completo da aula..."
+            },
+            "author": {
+              "type": "string",
+              "example": "Prof. João Silva"
+            },
+            "createdAt": {
+              "type": "string",
+              "example": "2025-10-14T00:00:00.000Z"
+            },
+            "updatedAt": {
+              "type": "string",
+              "example": "2025-10-14T00:00:00.000Z"
+            }
+          }
+        }
+      }
+    },
+    "PostList": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "count": {
+          "type": "number",
+          "example": 2
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "507f1f77bcf86cd799439011"
+              },
+              "title": {
+                "type": "string",
+                "example": "Introdução à Matemática"
+              },
+              "author": {
+                "type": "string",
+                "example": "Prof. João Silva"
+              },
+              "createdAt": {
+                "type": "string",
+                "example": "2025-10-14T00:00:00.000Z"
+              },
+              "excerpt": {
+                "type": "string",
+                "example": "Primeiros 100 caracteres..."
+              }
+            }
+          }
+        }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": false
+        },
+        "message": {
+          "type": "string",
+          "example": "Mensagem de erro"
+        }
+      }
+    },
+    "ValidationError": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": false
+        },
+        "message": {
+          "type": "string",
+          "example": "Erro de validação"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string",
+                "example": "title"
+              },
+              "message": {
+                "type": "string",
+                "example": "O título é obrigatório"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

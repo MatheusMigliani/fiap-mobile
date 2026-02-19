@@ -1,50 +1,166 @@
-# Welcome to your Expo app 👋
+# FIAP PosTech - Blog Educacional Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App mobile React Native (Expo) para a plataforma de blogging educacional da FIAP, com backend Node.js/Express/MongoDB.
 
-## Get started
+## Requisitos
 
-1. Install dependencies
+- Node.js 20+
+- Docker e Docker Compose
+- Expo CLI (`npx expo`)
+- Emulador Android/iOS ou dispositivo fisico com Expo Go
 
-   ```bash
-   npm install
-   ```
+## Setup Rapido
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Backend + MongoDB (Docker)
 
 ```bash
-npm run reset-project
+docker compose up -d
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+O backend estara disponivel em `http://localhost:3000` e o MongoDB em `localhost:27017`.
 
-## Learn more
+Para verificar:
+```bash
+curl http://localhost:3000/health
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### 2. App Mobile (Expo)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+# Na raiz do projeto
+npm install
+npx expo start
+```
 
-## Join the community
+Escaneie o QR code com o Expo Go ou pressione `a` para abrir no emulador Android.
 
-Join our community of developers creating universal apps.
+## Credenciais de Teste
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+| Usuario | E-mail | Senha | Role |
+|---------|--------|-------|------|
+| Professor FIAP | professor@fiap.com.br | fiap2024 | professor |
+| Admin FIAP | admin@fiap.com.br | fiap2024 | admin |
+| Aluno FIAP | aluno@fiap.com.br | fiap2024 | student |
+
+Os usuarios seed sao criados automaticamente ao iniciar o backend.
+
+## Arquitetura
+
+```
+fiap-mobile/
+├── app/                    # Telas (Expo Router - file-based routing)
+│   ├── (auth)/             # Telas de autenticacao (login)
+│   ├── (tabs)/             # Tabs principais
+│   │   ├── index.tsx       # Home - Lista de posts
+│   │   ├── professores/    # CRUD professores
+│   │   ├── alunos/         # CRUD alunos
+│   │   └── admin/          # Painel administrativo
+│   └── posts/              # Stack de posts (detalhe, criar, editar)
+├── backend/                # API Node.js/Express (standalone)
+│   ├── src/
+│   │   ├── controllers/    # Controllers (post, user, auth)
+│   │   ├── models/         # Mongoose models (Post, User)
+│   │   ├── routes/         # Rotas Express
+│   │   ├── services/       # Camada de servico
+│   │   ├── middleware/      # Auth, validacao, error handler
+│   │   └── config/         # Database, environment, seed
+│   ├── Dockerfile
+│   └── package.json
+├── components/             # Componentes reutilizaveis
+│   ├── ui/                 # Componentes base (Button, Input, Loading, etc)
+│   ├── post-card.tsx       # Card de post
+│   ├── post-form.tsx       # Formulario de post
+│   ├── user-form.tsx       # Formulario de usuario
+│   ├── search-bar.tsx      # Barra de busca com debounce
+│   └── pagination.tsx      # Controles de paginacao
+├── contexts/               # Context API (AuthContext)
+├── services/               # Servicos de API (auth, posts, professors, students)
+├── types/                  # Tipos TypeScript
+├── constants/              # Constantes (API URL, tema)
+└── docker-compose.yml      # Docker Compose (backend + MongoDB)
+```
+
+## Funcionalidades
+
+### Publico (sem login)
+- Listagem de posts com paginacao
+- Busca de posts por palavras-chave
+- Leitura completa de posts
+
+### Autenticado (student)
+- Tudo do publico
+- Visualizacao de professores e alunos
+
+### Professor / Admin
+- Tudo do autenticado
+- Criar, editar e excluir posts
+- CRUD completo de professores
+- CRUD completo de alunos
+- Painel administrativo (gerenciar todos os posts)
+
+## Endpoints da API
+
+### Auth
+| Metodo | Rota | Auth | Descricao |
+|--------|------|------|-----------|
+| POST | /api/auth/login | Nao | Login (retorna JWT) |
+| POST | /api/auth/register | Nao | Registro |
+
+### Posts
+| Metodo | Rota | Auth | Descricao |
+|--------|------|------|-----------|
+| GET | /api/posts?page=&limit= | Nao | Lista paginada |
+| GET | /api/posts/search?q= | Nao | Busca por keyword |
+| GET | /api/posts/:id | Nao | Detalhe do post |
+| POST | /api/posts | Sim | Criar post |
+| PUT | /api/posts/:id | Sim | Editar post |
+| DELETE | /api/posts/:id | Sim | Excluir post (soft delete) |
+
+### Professores
+| Metodo | Rota | Auth | Descricao |
+|--------|------|------|-----------|
+| GET | /api/professors?page=&limit=&search= | Sim | Lista paginada |
+| GET | /api/professors/:id | Sim | Detalhe |
+| POST | /api/professors | Sim (prof/admin) | Criar |
+| PUT | /api/professors/:id | Sim (prof/admin) | Editar |
+| DELETE | /api/professors/:id | Sim (prof/admin) | Excluir |
+
+### Alunos
+| Metodo | Rota | Auth | Descricao |
+|--------|------|------|-----------|
+| GET | /api/students?page=&limit=&search= | Sim | Lista paginada |
+| GET | /api/students/:id | Sim | Detalhe |
+| POST | /api/students | Sim (prof/admin) | Criar |
+| PUT | /api/students/:id | Sim (prof/admin) | Editar |
+| DELETE | /api/students/:id | Sim (prof/admin) | Excluir |
+
+## Tecnologias
+
+### Mobile
+- React Native + Expo SDK 54
+- Expo Router (file-based routing)
+- TypeScript
+- Context API (gerenciamento de estado)
+- expo-secure-store (armazenamento seguro do JWT)
+
+### Backend
+- Node.js + Express 5
+- MongoDB + Mongoose
+- JWT (autenticacao)
+- express-validator (validacao)
+- bcryptjs (hash de senhas)
+
+### Infraestrutura
+- Docker + Docker Compose
+- MongoDB 7
+
+## Decisoes Tecnicas
+
+| Decisao | Justificativa |
+|---------|--------------|
+| Context API | Estado global simples (auth), listas sao estado local |
+| fetch nativo | Incluso no RN, ApiClient encapsula headers/token/errors |
+| expo-secure-store | JWT com criptografia nativa (Keychain/EncryptedSharedPreferences) |
+| User model unico | Professores e alunos compartilham o mesmo schema, filtrados por role |
+| Posts como Stack fora de tabs | Telas de detalhe empilham sobre a tab atual |
+| Backend standalone | Removido do monorepo original para independencia |

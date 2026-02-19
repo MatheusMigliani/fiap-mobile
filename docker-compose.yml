@@ -1,0 +1,46 @@
+services:
+  backend:
+    build: ./backend
+    container_name: fiap-blog-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/fiap-blog
+      - JWT_SECRET=fiap-tech-challenge-secret-2024
+      - JWT_EXPIRES_IN=90d
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - fiap-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  mongo:
+    image: mongo:7-jammy
+    container_name: fiap-blog-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - fiap-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  fiap-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
