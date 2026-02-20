@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { router } from 'expo-router';
-import { useAuth } from '@/contexts/auth-context';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/use-auth';
+import React, { useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+const QUICK_LOGIN_OPTIONS = [
+  { label: 'Professor', email: 'professor@fiap.com.br', password: 'fiap2024', color: '#ED145B' },
+  { label: 'Aluno', email: 'aluno@fiap.com.br', password: 'fiap2024', color: '#00b894' },
+];
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -11,6 +15,12 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleQuickLogin = (option: typeof QUICK_LOGIN_OPTIONS[0]) => {
+    setEmail(option.email);
+    setPassword(option.password);
+    setErrors({});
+  };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -26,7 +36,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login(email.trim(), password);
-      router.replace('/(tabs)');
+      // O redirect é gerenciado pelo (auth)/_layout.tsx via useEffect
     } catch (error: any) {
       Alert.alert('Erro', error.message || 'E-mail ou senha incorretos');
     } finally {
@@ -69,6 +79,22 @@ export default function LoginScreen() {
           />
 
           <Button title="Entrar" onPress={handleLogin} loading={loading} />
+
+          <View style={styles.quickLoginSection}>
+            <Text style={styles.quickLoginTitle}>Acesso Rapido (Teste)</Text>
+            <View style={styles.quickLoginButtons}>
+              {QUICK_LOGIN_OPTIONS.map((option) => (
+                <TouchableOpacity
+                  key={option.label}
+                  style={[styles.quickLoginButton, { backgroundColor: option.color }]}
+                  onPress={() => handleQuickLogin(option)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.quickLoginButtonText}>{option.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -116,5 +142,36 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 24,
     textAlign: 'center',
+  },
+  quickLoginSection: {
+    marginTop: 24,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  quickLoginTitle: {
+    fontSize: 13,
+    color: '#999',
+    textAlign: 'center',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  quickLoginButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  quickLoginButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  quickLoginButtonText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

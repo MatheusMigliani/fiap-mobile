@@ -47,3 +47,6 @@ fiap-front-postech-master/
 
 # backend env
 backend/.env
+
+# documentacao interna
+docs/

@@ -1,24 +1,20 @@
-import React, { useState, useCallback } from 'react';
-import {
-  View,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  Text,
-  RefreshControl,
-} from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
-import { useAuth } from '@/contexts/auth-context';
-import { postService } from '@/services/post-service';
-import { PostListItem } from '@/types/post';
+import { Pagination } from '@/components/pagination';
 import { PostCard } from '@/components/post-card';
 import { SearchBar } from '@/components/search-bar';
-import { Pagination } from '@/components/pagination';
-import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Loading } from '@/components/ui/loading';
+import { postService } from '@/services/post-service';
+import { PostListItem } from '@/types/post';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import {
+    FlatList,
+    RefreshControl,
+    StyleSheet,
+    View
+} from 'react-native';
 
 export default function HomeScreen() {
-  const { isAuthenticated, user } = useAuth();
   const [posts, setPosts] = useState<PostListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -26,7 +22,6 @@ export default function HomeScreen() {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const canCreate = isAuthenticated && user && (user.role === 'professor' || user.role === 'admin');
 
   const fetchPosts = useCallback(async (pageNum = 1) => {
     try {
@@ -109,15 +104,6 @@ export default function HomeScreen() {
         contentContainerStyle={posts.length === 0 ? styles.emptyList : undefined}
       />
 
-      {canCreate && (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => router.push('/posts/criar')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.fabText}>+</Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }
@@ -130,27 +116,5 @@ const styles = StyleSheet.create({
   },
   emptyList: {
     flexGrow: 1,
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#ED145B',
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  fabText: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: '600',
-    lineHeight: 30,
   },
 });

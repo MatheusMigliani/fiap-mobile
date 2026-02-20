@@ -1,0 +1,569 @@
+{
+  "info": {
+    "name": "FIAP Tech Challenge - Blog Educacional",
+    "description": "Collection para testar a API do Tech Challenge Fase 4.\n\n**Como usar:**\n1. Faça login como Professor ou Aluno — o token é salvo automaticamente na variável `{{token}}`\n2. Todas as demais requisições já usam `{{token}}` no header Authorization",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "postId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "professorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Login como Professor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    console.log('✅ Token salvo:', json.data.token.substring(0, 30) + '...');",
+                  "} else {",
+                  "    console.log('❌ Token não encontrado na resposta');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"professor@fiap.com.br\",\n  \"password\": \"fiap2024\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Login como professor. O token JWT é salvo automaticamente na variável `{{token}}`."
+          }
+        },
+        {
+          "name": "Login como Aluno",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    console.log('✅ Token salvo (aluno):', json.data.token.substring(0, 30) + '...');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"aluno@fiap.com.br\",\n  \"password\": \"fiap2024\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Login como aluno. O token JWT é salvo automaticamente na variável `{{token}}`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 Posts",
+      "item": [
+        {
+          "name": "Listar Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Lista paginada de posts. Não requer autenticação."
+          }
+        },
+        {
+          "name": "Buscar Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/search?q=react",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "search"],
+              "query": [{ "key": "q", "value": "react" }]
+            },
+            "description": "Busca posts pelo título ou conteúdo."
+          }
+        },
+        {
+          "name": "Detalhe do Post",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/{{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "{{postId}}"]
+            },
+            "description": "Retorna o post completo (com content, não só excerpt). Defina `{{postId}}` com o ID de um post."
+          }
+        },
+        {
+          "name": "Criar Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('postId', json.data.id);",
+                  "    console.log('✅ postId salvo:', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Introdução ao React Native\",\n  \"content\": \"React Native é um framework de desenvolvimento mobile criado pelo Facebook que permite criar aplicativos nativos para iOS e Android usando JavaScript e React.\\n\\nPrincipais vantagens:\\n- Código compartilhado entre plataformas\\n- Hot Reload para desenvolvimento rápido\\n- Grande comunidade e ecossistema\\n- Performance próxima ao nativo\",\n  \"author\": \"Professor FIAP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/posts", "host": ["{{baseUrl}}"], "path": ["posts"] },
+            "description": "Cria um novo post. Requer token de professor. O `postId` é salvo automaticamente."
+          }
+        },
+        {
+          "name": "Criar Post - Hooks React",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Dominando os Hooks do React\",\n  \"content\": \"Os Hooks revolucionaram a forma de escrever componentes React. Vamos explorar os principais:\\n\\n1. useState - Gerenciamento de estado local\\n2. useEffect - Efeitos colaterais e ciclo de vida\\n3. useCallback - Memoizar funções\\n4. useMemo - Memoizar valores computados\\n5. useRef - Referências mutáveis\\n\\nCada Hook tem seu caso de uso específico.\",\n  \"author\": \"Professor FIAP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/posts", "host": ["{{baseUrl}}"], "path": ["posts"] }
+          }
+        },
+        {
+          "name": "Criar Post - Expo Router",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Navegação com Expo Router\",\n  \"content\": \"O Expo Router traz o conceito de file-based routing para React Native, similar ao Next.js.\\n\\nEstrutura de pastas:\\n- app/(tabs) - Navegação por abas\\n- app/(auth) - Rotas de autenticação\\n- app/[id].tsx - Rotas dinâmicas\\n\\nVantagens:\\n- Configuração automática de deep links\\n- Type safety com TypeScript\\n- Layouts compartilhados\",\n  \"author\": \"Professor FIAP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/posts", "host": ["{{baseUrl}}"], "path": ["posts"] }
+          }
+        },
+        {
+          "name": "Criar Post - Segurança Mobile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Segurança em Apps Mobile\",\n  \"content\": \"Segurança é fundamental em aplicações mobile. Principais práticas:\\n\\n1. Armazenamento Seguro\\n- Usar SecureStore para tokens\\n- Nunca salvar senhas em texto plano\\n\\n2. Comunicação\\n- Sempre usar HTTPS\\n- Validar certificados SSL\\n\\n3. Autenticação\\n- Implementar JWT com expiração\\n- Refresh tokens seguros\",\n  \"author\": \"Professor FIAP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/posts", "host": ["{{baseUrl}}"], "path": ["posts"] }
+          }
+        },
+        {
+          "name": "Criar Post - TypeScript",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"TypeScript no React Native\",\n  \"content\": \"TypeScript adiciona tipagem estática ao JavaScript, trazendo vários benefícios:\\n\\n- Detecção de erros em tempo de desenvolvimento\\n- Melhor autocomplete e IntelliSense\\n- Documentação inline do código\\n- Refatoração mais segura\\n\\nO investimento em aprender TypeScript compensa rapidamente em projetos maiores.\",\n  \"author\": \"Professor FIAP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/posts", "host": ["{{baseUrl}}"], "path": ["posts"] }
+          }
+        },
+        {
+          "name": "Criar Post - Context vs Redux",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Context API vs Redux: Quando usar cada um?\",\n  \"content\": \"A escolha entre Context API e Redux depende do seu projeto:\\n\\nContext API:\\n- Ideal para estado simples e global\\n- Autenticação, tema, idioma\\n- Menos boilerplate\\n\\nRedux:\\n- Aplicações com estado complexo\\n- DevTools poderosas\\n- Middleware (thunk, saga)\\n\\nPara a maioria dos projetos mobile, Context API é suficiente. Redux brilha em apps enterprise.\",\n  \"author\": \"Professor FIAP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/posts", "host": ["{{baseUrl}}"], "path": ["posts"] }
+          }
+        },
+        {
+          "name": "Editar Post",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Introdução ao React Native - Atualizado 2024\",\n  \"content\": \"React Native é um framework de desenvolvimento mobile criado pelo Facebook (agora Meta) que permite criar aplicativos nativos para iOS e Android usando JavaScript e React.\\n\\nNovidades em 2024:\\n- New Architecture estável\\n- Melhor performance com Hermes\\n- Expo SDK 54 com suporte completo\",\n  \"author\": \"Professor FIAP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/posts/{{postId}}", "host": ["{{baseUrl}}"], "path": ["posts", "{{postId}}"] },
+            "description": "Edita o post cujo ID está em `{{postId}}`."
+          }
+        },
+        {
+          "name": "Excluir Post",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/posts/{{postId}}", "host": ["{{baseUrl}}"], "path": ["posts", "{{postId}}"] },
+            "description": "Soft delete do post cujo ID está em `{{postId}}`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "👨‍🏫 Professores",
+      "item": [
+        {
+          "name": "Listar Professores",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/professors?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["professors"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar Professor",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/professors?search=silva",
+              "host": ["{{baseUrl}}"],
+              "path": ["professors"],
+              "query": [{ "key": "search", "value": "silva" }]
+            }
+          }
+        },
+        {
+          "name": "Criar Professor 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('professorId', json.data.id);",
+                  "    console.log('✅ professorId salvo:', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos Eduardo Silva\",\n  \"email\": \"carlos.silva@fiap.com.br\",\n  \"password\": \"prof2024\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/professors", "host": ["{{baseUrl}}"], "path": ["professors"] }
+          }
+        },
+        {
+          "name": "Criar Professor 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana Paula Santos\",\n  \"email\": \"ana.santos@fiap.com.br\",\n  \"password\": \"prof2024\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/professors", "host": ["{{baseUrl}}"], "path": ["professors"] }
+          }
+        },
+        {
+          "name": "Criar Professor 3",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Roberto Ferreira Lima\",\n  \"email\": \"roberto.lima@fiap.com.br\",\n  \"password\": \"prof2024\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/professors", "host": ["{{baseUrl}}"], "path": ["professors"] }
+          }
+        },
+        {
+          "name": "Editar Professor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos Eduardo Silva Junior\",\n  \"email\": \"carlos.silva.jr@fiap.com.br\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/professors/{{professorId}}", "host": ["{{baseUrl}}"], "path": ["professors", "{{professorId}}"] }
+          }
+        },
+        {
+          "name": "Excluir Professor",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/professors/{{professorId}}", "host": ["{{baseUrl}}"], "path": ["professors", "{{professorId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎓 Alunos",
+      "item": [
+        {
+          "name": "Listar Alunos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/students?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["students"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar Aluno",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/students?search=maria",
+              "host": ["{{baseUrl}}"],
+              "path": ["students"],
+              "query": [{ "key": "search", "value": "maria" }]
+            }
+          }
+        },
+        {
+          "name": "Criar Aluno 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('studentId', json.data.id);",
+                  "    console.log('✅ studentId salvo:', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Joao Pedro Oliveira\",\n  \"email\": \"joao.oliveira@fiap.com.br\",\n  \"password\": \"aluno2024\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/students", "host": ["{{baseUrl}}"], "path": ["students"] }
+          }
+        },
+        {
+          "name": "Criar Aluno 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Maria Clara Costa\",\n  \"email\": \"maria.costa@fiap.com.br\",\n  \"password\": \"aluno2024\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/students", "host": ["{{baseUrl}}"], "path": ["students"] }
+          }
+        },
+        {
+          "name": "Criar Aluno 3",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lucas Santos Pereira\",\n  \"email\": \"lucas.pereira@fiap.com.br\",\n  \"password\": \"aluno2024\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/students", "host": ["{{baseUrl}}"], "path": ["students"] }
+          }
+        },
+        {
+          "name": "Criar Aluno 4",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Beatriz Rodrigues\",\n  \"email\": \"beatriz.rodrigues@fiap.com.br\",\n  \"password\": \"aluno2024\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/students", "host": ["{{baseUrl}}"], "path": ["students"] }
+          }
+        },
+        {
+          "name": "Criar Aluno 5",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gabriel Martins\",\n  \"email\": \"gabriel.martins@fiap.com.br\",\n  \"password\": \"aluno2024\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/students", "host": ["{{baseUrl}}"], "path": ["students"] }
+          }
+        },
+        {
+          "name": "Editar Aluno",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Joao Pedro Oliveira Santos\",\n  \"email\": \"joao.santos@fiap.com.br\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/students/{{studentId}}", "host": ["{{baseUrl}}"], "path": ["students", "{{studentId}}"] }
+          }
+        },
+        {
+          "name": "Excluir Aluno",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/students/{{studentId}}", "host": ["{{baseUrl}}"], "path": ["students", "{{studentId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["health"]
+            },
+            "description": "Verifica se o backend está rodando."
+          }
+        }
+      ]
+    }
+  ]
+}

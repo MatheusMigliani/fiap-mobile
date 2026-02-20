@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
 const config = require('./config/environment');
 const connectDatabase = require('./config/database');
 const postRoutes = require('./routes/postRoutes');
@@ -8,6 +9,7 @@ const createUserRoutes = require('./routes/userRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
 const { runSeeds } = require('./config/seed');
+const swaggerSpec = require('./config/swagger');
 
 const app = express();
 
@@ -46,6 +48,9 @@ app.get('/', (_req, res) => {
     },
   });
 });
+
+// Swagger UI
+app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Rotas da API
 app.use('/api/auth', authRoutes);

@@ -1,26 +1,26 @@
-import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL, API_TIMEOUT } from '@/constants/api';
 
 class ApiClient {
   private baseUrl: string;
+  private tokenGetter: (() => string | null) | null = null;
 
   constructor() {
     this.baseUrl = API_BASE_URL;
   }
 
-  private async getToken(): Promise<string | null> {
-    try {
-      return await SecureStore.getItemAsync('token');
-    } catch {
-      return null;
-    }
+  setTokenGetter(getter: () => string | null) {
+    this.tokenGetter = getter;
+  }
+
+  private getToken(): string | null {
+    return this.tokenGetter ? this.tokenGetter() : null;
   }
 
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const token = await this.getToken();
+    const token = this.getToken();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 

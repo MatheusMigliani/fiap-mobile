@@ -1,18 +1,28 @@
 import { Tabs, router } from 'expo-router';
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
+import { useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useAuth } from '@/contexts/auth-context';
+
+const ROLE_COLORS: Record<string, string> = {
+  professor: 'rgba(255,255,255,0.3)',
+  student: '#00b894',
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  professor: 'Prof',
+  student: 'Aluno',
+};
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { isAuthenticated, user, logout } = useAuth();
 
-  const isPrivileged = isAuthenticated && user && (user.role === 'professor' || user.role === 'admin');
+  const isPrivileged = isAuthenticated && user?.role === 'professor';
 
   const handleAuthPress = async () => {
     if (isAuthenticated) {
@@ -32,13 +42,33 @@ export default function TabLayout() {
         headerTintColor: '#fff',
         headerTitleStyle: { fontWeight: '700' },
         tabBarButton: HapticTab,
-        headerRight: () => (
-          <TouchableOpacity onPress={handleAuthPress} style={styles.headerButton}>
-            <Text style={styles.headerButtonText}>
-              {isAuthenticated ? 'Sair' : 'Entrar'}
-            </Text>
-          </TouchableOpacity>
-        ),
+        headerRight: () =>
+          isAuthenticated && user ? (
+            <View style={styles.headerRight}>
+              <View style={styles.userInfo}>
+                <Text style={styles.userName} numberOfLines={1}>
+                  {user.name.split(' ')[0]}
+                </Text>
+                <View
+                  style={[
+                    styles.roleBadge,
+                    { backgroundColor: ROLE_COLORS[user.role] ?? '#888' },
+                  ]}
+                >
+                  <Text style={styles.roleText}>
+                    {ROLE_LABELS[user.role] ?? user.role}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={handleAuthPress} style={styles.logoutButton}>
+                <Text style={styles.logoutText}>Sair</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity onPress={handleAuthPress} style={styles.logoutButton}>
+              <Text style={styles.logoutText}>Entrar</Text>
+            </TouchableOpacity>
+          ),
       }}
     >
       <Tabs.Screen
@@ -51,25 +81,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="professores"
+        name="meus-posts"
         options={{
-          title: 'Professores',
-          headerShown: false,
+          title: 'Meus Posts',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.fill" color={color} />
+            <IconSymbol size={28} name="pencil" color={color} />
           ),
-          href: isAuthenticated ? undefined : null,
-        }}
-      />
-      <Tabs.Screen
-        name="alunos"
-        options={{
-          title: 'Alunos',
-          headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.2.fill" color={color} />
-          ),
-          href: isAuthenticated ? undefined : null,
+          href: isAuthenticated && user?.role === 'student' ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -88,14 +106,40 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  headerButton: {
-    marginRight: 16,
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginRight: 12,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  userName: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  roleBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 99,
+  },
+  roleText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+  logoutButton: {
     paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 6,
   },
-  headerButtonText: {
+  logoutText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 14,
